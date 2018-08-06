@@ -61,7 +61,7 @@ class MainPage(webapp2.RequestHandler):
             'user': user,
             'url': url,
             'url_linktext': url_linktext,
-            'action': upload_url,
+            # 'action': upload_url,
         }
 
         
@@ -143,7 +143,8 @@ app = webapp2.WSGIApplication([
     ('/book-reports', Reports),
     ('/manage-themes', ManageThemes),
     ('/create-report', CreateReport),
-s], debug=True)
+    ('/upload_photo', PhotoUploadHandler),
+], debug=True)
 # [END app]
 
 
