@@ -64,6 +64,7 @@ class MainPage(webapp2.RequestHandler):
             # 'action': upload_url,
         }
 
+
         
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(template_values))
@@ -143,7 +144,7 @@ app = webapp2.WSGIApplication([
     ('/book-reports', Reports),
     ('/manage-themes', ManageThemes),
     ('/create-report', CreateReport),
-    ('/upload_photo', PhotoUploadHandler),
+    # ('/upload_photo', PhotoUploadHandler),
 ], debug=True)
 # [END app]
 
