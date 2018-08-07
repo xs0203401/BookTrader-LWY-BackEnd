@@ -8,6 +8,7 @@ import webapp2
 # This datastore model keeps track of which users uploaded which photos.
 class UserPhoto(ndb.Model):
     user = ndb.StringProperty()
+    title = ndb.StringProperty()
     blob_key = ndb.BlobKeyProperty()
 
 
@@ -19,6 +20,7 @@ class PhotoUploadFormHandler(webapp2.RequestHandler):
         self.response.out.write("""
 <html><body>
 <form action="{0}" method="POST" enctype="multipart/form-data">
+<input type="title" class="form-control" placeholder="Report title" name="title">
   Upload File: <input type="file" name="file"><br>
   <input type="submit" name="submit" value="Submit">
 </form>
@@ -30,10 +32,13 @@ class PhotoUploadHandler(blobstore_handlers.BlobstoreUploadHandler):
         upload = self.get_uploads()[0]
         user_photo = UserPhoto(
             user="users.get_current_user().user_id()",
+            title=self.request.get('title'),
             blob_key=upload.key())
         user_photo.put()
 
-        self.redirect('/view_photo/%s' % upload.key())
+
+
+        self.redirect('/view_photo/%s'%upload.key())
 
 
 class ViewPhotoHandler(blobstore_handlers.BlobstoreDownloadHandler):

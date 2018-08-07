@@ -50,7 +50,7 @@
     </div>
     
     <div class="container">
-      <form action="{{ action }}" method="POST" enctype="multipart/form-data">
+      <form action="{{ upload_action }}" method="POST" enctype="multipart/form-data">
         <div class="form-group">
           <label for="theme">Theme</label>
           <select id="theme" class="form-control">
@@ -74,7 +74,7 @@
         </div>
         <div class="form-group">
           <label for="book-img">Upload an image</label>
-          <input class="form-control" type="file" id="book-img" name="book-img" accept="image/png, image/jpeg">
+          <input class="form-control" type="file" id="book-img" name="book-img" accept="image/png, image/jpeg" multiple>
         </div>
         <div class="form-group">
           <button type="submit" class="btn btn-default">Submit</button>
