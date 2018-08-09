@@ -125,8 +125,8 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
         self.response.write('''<body><html>''')
         self.response.write('success!')
 
-        query_params = {'report_theme': report_theme}
-        self.redirect('/reports?' + urllib.urlencode(query_params))
+        # query_params = {'guestbook_name': guestbook_name}
+        # self.redirect('/?' + urllib.urlencode(query_params))
 
 
 class ThemesPage(webapp2.RequestHandler):
@@ -172,7 +172,7 @@ class ManageThemes(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/themes', ThemesPage),
-    ('/reports', Reports),
+    ('/book_reports', Reports),
     ('/manage_themes', ManageThemes),
     ('/create_report', CreateReport),
     ('/view_photo/([^/]+)?', ViewPhotoHandler),
