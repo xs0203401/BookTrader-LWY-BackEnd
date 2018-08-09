@@ -179,9 +179,3 @@ app = webapp2.WSGIApplication([
     ('/view_photo/([^/]+)?', ViewPhotoHandler),
 ], debug=True)
 # [END app]
-
-
-
-
-
-
