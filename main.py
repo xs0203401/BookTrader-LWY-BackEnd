@@ -45,15 +45,11 @@ class MainPage(webapp2.RequestHandler):
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
-        
-        # Image Upload Url
-        upload_url = blobstore.create_upload_url('/create_photo')
 
         template_values = {
             'user': user,
             'url': url,
             'url_linktext': url_linktext,
-            'upload_action': upload_url,
         }
 
 
@@ -69,6 +65,31 @@ class ViewPhotoHandler(blobstore_handlers.BlobstoreDownloadHandler):
             self.send_blob(photo_key)
 
 class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
+
+    def get(self):
+
+        user = users.get_current_user()
+        if user:
+            url = users.create_logout_url(self.request.uri)
+            url_linktext = 'Logout'
+        else:
+            url = users.create_login_url(self.request.uri)
+            url_linktext = 'Login'
+        
+        # Image Upload Url
+        upload_url = blobstore.create_upload_url('/create_photo')
+
+        template_values = {
+            'user': user,
+            'url': url,
+            'url_linktext': url_linktext,
+            'upload_action': upload_url,
+        }
+
+
+        
+        template = JINJA_ENVIRONMENT.get_template('create_report.html')
+        self.response.write(template.render(template_values))
 
     def post(self):
         
