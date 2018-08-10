@@ -41,7 +41,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="brand" href="#">BookTrader</a>
+          <a class="brand" href="./">BookTrader</a>
           <div class="nav-collapse collapse pull-right">
             <a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>
           </div>
@@ -53,7 +53,7 @@
       <form action="{{ upload_action }}" method="POST" enctype="multipart/form-data">
         <div class="form-group">
           <label for="theme">Theme</label>
-          <select id="theme" class="form-control">
+          <select id="theme" name="theme" class="form-control">
             <option>--Select from a theme--</option>
             <option value="T1">Theme 1</option>
             <option value="T2">Theme 2</option>

@@ -11,7 +11,7 @@ import jinja2
 
 
 JINJA_ENVIRONMENT = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)+"/templates"),
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)+"/templates/WIP"),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 # [END imports]
@@ -21,7 +21,7 @@ DEFAULT_THEME = "default"
 def theme_key(theme_name=DEFAULT_THEME):
     return ndb.Key('Theme', theme_name)
 
-def user_check():
+def user_check(self):
     user = users.get_current_user()
     if user:
         url = users.create_logout_url(self.request.uri)
@@ -45,11 +45,18 @@ class Report(ndb.Model):
     image = ndb.BlobKeyProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
 
+class ViewPhotoHandler(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, photo_key):
+        if not blobstore.get(photo_key):
+            self.error(404)
+        else:
+            self.send_blob(photo_key)
+
 class MainPage(webapp2.RequestHandler):
 
     def get(self):
 
-        user, url, url_linktext = user_check()
+        user, url, url_linktext = user_check(self)
 
         template_values = {
             'user': user,
@@ -62,18 +69,11 @@ class MainPage(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(template_values))
 
-class ViewPhotoHandler(blobstore_handlers.BlobstoreDownloadHandler):
-    def get(self, photo_key):
-        if not blobstore.get(photo_key):
-            self.error(404)
-        else:
-            self.send_blob(photo_key)
-
 class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
 
     def get(self):
 
-        user, url, url_linktext = user_check()
+        user, url, url_linktext = user_check(self)
         
         # Image Upload Url
         upload_url = blobstore.create_upload_url('/create_report')
@@ -92,30 +92,28 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
 
     def post(self):
         
-        user, url, url_linktext = user_check()
+        user, url, url_linktext = user_check(self)
+
+        # Saving image
+        upload = self.get_uploads()[0]
 
         report_theme = self.request.get('theme', DEFAULT_THEME)
         report = Report(parent=theme_key(report_theme))
-
         report.theme = self.request.get('theme')
         report.title = self.request.get('title')
         report.tag = self.request.get('tags')
         report.description = self.request.get('description')
-
-        # Saving image
-        upload = self.get_uploads()[0]
         report.image = upload.key()
-
-
+        
         report.put()
 
-        self.response.write('''<html><body>You wrote:</br>"''')
-        self.response.write(report.theme+"</br>")
-        self.response.write(report.title+"</br>")
-        self.response.write(report.tag+"</br>")
-        self.response.write(report.description+"</br>")
-        self.response.write('''<body><html>''')
-        self.response.write('success!')
+        # self.response.write('''<html><body>You wrote:</br>"''')
+        # self.response.write(report.theme+"</br>")
+        # self.response.write(report.title+"</br>")
+        # self.response.write(report.tag+"</br>")
+        # self.response.write(report.description+"</br>")
+        # self.response.write('''<body><html>''')
+        # self.response.write('success!')
 
         query_params = {'report_theme': report_theme}
         self.redirect('/reports?' + urllib.urlencode(query_params))
@@ -139,7 +137,7 @@ class Reports(webapp2.RequestHandler):
 
     def get(self):
 
-        user, url, url_linktext = user_check()
+        user, url, url_linktext = user_check(self)
 
         # guestbook_name = self.request.get('guestbook_name',
         #                                   DEFAULT_GUESTBOOK_NAME)
@@ -147,7 +145,7 @@ class Reports(webapp2.RequestHandler):
         #     ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
         # greetings = greetings_query.fetch(10)
 
-        
+
         template_values = {
             'user': user,
             'url': url,
