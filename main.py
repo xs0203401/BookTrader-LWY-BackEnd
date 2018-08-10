@@ -14,12 +14,10 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)+"/templates/WIP"),
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
+
 # [END imports]
 
-DEFAULT_THEME = "default"
-
-def theme_key(theme_name=DEFAULT_THEME):
-    return ndb.Key('Theme', theme_name)
+DEFAULT_THEME = "T1"
 
 def user_check(self):
     user = users.get_current_user()
@@ -32,13 +30,28 @@ def user_check(self):
     return user, url, url_linktext
 
 
+def theme_key(theme_name=DEFAULT_THEME):
+    return ndb.Key('theme_name', theme_name)
+
+class Theme(ndb.Model):
+    theme_name = ndb.StringProperty(indexed=False)
+
+t1=Theme()
+t1.theme_name="T1"
+t1.put()
+t2=Theme()
+t2.theme_name="T2"
+t2.put()
+t3=Theme()
+t3.theme_name="T3"
+t3.put()
+
 class Author(ndb.Model):
     identity = ndb.StringProperty(indexed=False)
     email = ndb.StringProperty(indexed=False)
 
 class Report(ndb.Model):
     author = ndb.StructuredProperty(Author)
-    theme = ndb.StringProperty(indexed=False)
     title = ndb.StringProperty(indexed=False)
     tag = ndb.StringProperty(indexed=False)
     description = ndb.StringProperty(indexed=False)
@@ -99,23 +112,15 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
 
         report_theme = self.request.get('theme', DEFAULT_THEME)
         report = Report(parent=theme_key(report_theme))
-        report.theme = self.request.get('theme')
+        # report.theme = self.request.get('theme')
         report.title = self.request.get('title')
         report.tag = self.request.get('tags')
         report.description = self.request.get('description')
         report.image = upload.key()
-        
+
         report.put()
 
-        # self.response.write('''<html><body>You wrote:</br>"''')
-        # self.response.write(report.theme+"</br>")
-        # self.response.write(report.title+"</br>")
-        # self.response.write(report.tag+"</br>")
-        # self.response.write(report.description+"</br>")
-        # self.response.write('''<body><html>''')
-        # self.response.write('success!')
-
-        query_params = {'report_theme': report_theme}
+        query_params = {'report_theme': report_theme, 'page_num': 1}
         self.redirect('/reports?' + urllib.urlencode(query_params))
 
 
@@ -128,12 +133,19 @@ class ThemesPage(webapp2.RequestHandler):
         # greetings_query = Greeting.query(
         #     ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
         # greetings = greetings_query.fetch(10)
+        user, url, url_linktext = user_check(self)
+
+        template_values = {
+            'user': user,
+            'url': url,
+            'url_linktext': url_linktext,
+        }
 
         template = JINJA_ENVIRONMENT.get_template('themes.html')
         self.response.write(template.render(template_values))
 
 
-class Reports(webapp2.RequestHandler):
+class ReportsPage(webapp2.RequestHandler):
 
     def get(self):
 
@@ -145,11 +157,20 @@ class Reports(webapp2.RequestHandler):
         #     ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
         # greetings = greetings_query.fetch(10)
 
+        report_theme = self.request.get('report_theme', 'T1')
+        page_num = int(self.request.get('page_num', 1))
+
+        reports_query = Report.query(
+            ancestor=theme_key(report_theme)).order(-Report.date)
+        report_items = reports_query.fetch(2, offset=2*(page_num-1))
 
         template_values = {
             'user': user,
             'url': url,
             'url_linktext': url_linktext,
+            'page_num': page_num,
+            'report_theme': report_theme,
+            'reports': report_items,
         }
 
         template = JINJA_ENVIRONMENT.get_template('reports.html')
@@ -159,6 +180,15 @@ class Reports(webapp2.RequestHandler):
 class ManageThemes(webapp2.RequestHandler):
 
     def get(self):
+        # themes_query = Theme.query()
+        # theme_items = reports_query.fetch()
+        user, url, url_linktext = user_check(self)
+        template_values = {
+            'user': user,
+            'url': url,
+            'url_linktext': url_linktext,
+            # 'themes': theme_items,
+        }
 
 
         template = JINJA_ENVIRONMENT.get_template('manage.html')
@@ -171,7 +201,7 @@ class ManageThemes(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/themes', ThemesPage),
-    ('/reports', Reports),
+    ('/reports', ReportsPage),
     ('/manage_themes', ManageThemes),
     ('/create_report', CreateReport),
     ('/view_photo/([^/]+)?', ViewPhotoHandler),
