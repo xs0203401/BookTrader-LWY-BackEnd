@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>home</title>
+  <title>reports</title>
     <!-- [START css] -->
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap-responsive.css">
@@ -59,7 +59,7 @@
           </div>
           <div class="col-md-8">
             <h3>Report Title: {{ item.title }}</h3>
-            <h4>Author: {{ item.author.identity }}</h4>
+            <h4>Author: <a href="mailto:{{ item.author.email }}">{{ item.author.identity }}</a></h4>
             <p>Description: {{ item.description }}</p>
             <i>Report Date: {{ item.date }}</i></br>
             <b>Tags: {{ item.tag }}</b>

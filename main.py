@@ -104,8 +104,6 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
             'theme_items': theme_items,
             'report_theme': report_theme,
         }
-
-
         
         template = JINJA_ENVIRONMENT.get_template('create_report.html')
         self.response.write(template.render(template_values))
@@ -117,8 +115,18 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
         # Saving image
         upload = self.get_uploads()[0]
 
+        # Create Entity
         report_theme = self.request.get('theme', DEFAULT_THEME)
         report = Report(parent=theme_key(report_theme))
+        # Checking Author
+        if users.get_current_user():
+            report.author = Author(
+                identity=users.get_current_user().user_id(),
+                email=users.get_current_user().email())
+        else:
+            report.author = Author(
+                identity="Anonymous",
+                email="unknown@unknown.com")
         # report.theme = self.request.get('theme')
         report.title = self.request.get('title')
         report.tag = self.request.get('tags')
