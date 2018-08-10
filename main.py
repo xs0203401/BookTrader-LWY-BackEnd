@@ -21,6 +21,17 @@ DEFAULT_THEME = "default"
 def theme_key(theme_name=DEFAULT_THEME):
     return ndb.Key('Theme', theme_name)
 
+def user_check():
+    user = users.get_current_user()
+    if user:
+        url = users.create_logout_url(self.request.uri)
+        url_linktext = 'Logout'
+    else:
+        url = users.create_login_url(self.request.uri)
+        url_linktext = 'Login'
+    return user, url, url_linktext
+
+
 class Author(ndb.Model):
     identity = ndb.StringProperty(indexed=False)
     email = ndb.StringProperty(indexed=False)
@@ -38,13 +49,7 @@ class MainPage(webapp2.RequestHandler):
 
     def get(self):
 
-        user = users.get_current_user()
-        if user:
-            url = users.create_logout_url(self.request.uri)
-            url_linktext = 'Logout'
-        else:
-            url = users.create_login_url(self.request.uri)
-            url_linktext = 'Login'
+        user, url, url_linktext = user_check()
 
         template_values = {
             'user': user,
@@ -68,13 +73,7 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
 
     def get(self):
 
-        user = users.get_current_user()
-        if user:
-            url = users.create_logout_url(self.request.uri)
-            url_linktext = 'Logout'
-        else:
-            url = users.create_login_url(self.request.uri)
-            url_linktext = 'Login'
+        user, url, url_linktext = user_check()
         
         # Image Upload Url
         upload_url = blobstore.create_upload_url('/create_report')
@@ -93,17 +92,10 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
 
     def post(self):
         
+        user, url, url_linktext = user_check()
+
         report_theme = self.request.get('theme', DEFAULT_THEME)
         report = Report(parent=theme_key(report_theme))
-
-        if users.get_current_user():
-            report.author = Author(
-                identity=users.get_current_user().user_id(),
-                email=users.get_current_user().email())
-        else:
-            report.author = Author(
-                identity="Anonymous",
-                email="unknown@unknown.com")
 
         report.theme = self.request.get('theme')
         report.title = self.request.get('title')
@@ -147,11 +139,20 @@ class Reports(webapp2.RequestHandler):
 
     def get(self):
 
+        user, url, url_linktext = user_check()
+
         # guestbook_name = self.request.get('guestbook_name',
         #                                   DEFAULT_GUESTBOOK_NAME)
         # greetings_query = Greeting.query(
         #     ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
         # greetings = greetings_query.fetch(10)
+
+        
+        template_values = {
+            'user': user,
+            'url': url,
+            'url_linktext': url_linktext,
+        }
 
         template = JINJA_ENVIRONMENT.get_template('reports.html')
         self.response.write(template.render(template_values))
