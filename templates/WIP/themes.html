@@ -50,12 +50,9 @@
     </div>
     <div class="container">
       <ul>
-      {% for item in themes %}
+      {% for item in theme_items -%}
         <li><a href="/reports?report_theme={{ item.theme_name }}">{{ item.theme_name }}</a></li>
-      {% endfor %}
-      <li><a href="/reports?report_theme=T1">T1</a></li>
-      <li><a href="/reports?report_theme=T2">T2</a></li>
-      <li><a href="/reports?report_theme=T3">T3</a></li>
+      {% endfor -%}
       </ul>
     </div>
 	

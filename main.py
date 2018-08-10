@@ -34,17 +34,18 @@ def theme_key(theme_name=DEFAULT_THEME):
     return ndb.Key('theme_name', theme_name)
 
 class Theme(ndb.Model):
-    theme_name = ndb.StringProperty(indexed=False)
+    theme_name = ndb.StringProperty()
 
-t1=Theme()
-t1.theme_name="T1"
-t1.put()
-t2=Theme()
-t2.theme_name="T2"
-t2.put()
-t3=Theme()
-t3.theme_name="T3"
-t3.put()
+def THEME_INITIALIZE():
+    t1=Theme()
+    t1.theme_name="Information Systems"
+    t1.put()
+    t2=Theme()
+    t2.theme_name="Business"
+    t2.put()
+    t3=Theme()
+    t3.theme_name="Statistics"
+    t3.put()
 
 class Author(ndb.Model):
     identity = ndb.StringProperty(indexed=False)
@@ -88,14 +89,20 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
 
         user, url, url_linktext = user_check(self)
         
+        theme_items = Theme.query()
+        
         # Image Upload Url
         upload_url = blobstore.create_upload_url('/create_report')
+
+        report_theme = self.request.get('theme')
 
         template_values = {
             'user': user,
             'url': url,
             'url_linktext': url_linktext,
             'upload_action': upload_url,
+            'theme_items': theme_items,
+            'report_theme': report_theme,
         }
 
 
@@ -135,10 +142,17 @@ class ThemesPage(webapp2.RequestHandler):
         # greetings = greetings_query.fetch(10)
         user, url, url_linktext = user_check(self)
 
+        # pass "0" when testing to initialize first 3 Themes
+        if self.request.get('I')=="0":
+            THEME_INITIALIZE()
+
+        theme_items = Theme.query()
+
         template_values = {
             'user': user,
             'url': url,
             'url_linktext': url_linktext,
+            'theme_items': theme_items,
         }
 
         template = JINJA_ENVIRONMENT.get_template('themes.html')
@@ -157,12 +171,17 @@ class ReportsPage(webapp2.RequestHandler):
         #     ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
         # greetings = greetings_query.fetch(10)
 
-        report_theme = self.request.get('report_theme', 'T1')
+        report_theme=self.request.get('report_theme')
+        # if theme is not specified go to Themes page
+        if report_theme=='':
+            self.redirect('/themes')
+            return
+
         page_num = int(self.request.get('page_num', 1))
 
         reports_query = Report.query(
             ancestor=theme_key(report_theme)).order(-Report.date)
-        report_items = reports_query.fetch(2, offset=2*(page_num-1))
+        report_items = reports_query.fetch(5, offset=5*(page_num-1))
 
         template_values = {
             'user': user,
@@ -183,11 +202,14 @@ class ManageThemes(webapp2.RequestHandler):
         # themes_query = Theme.query()
         # theme_items = reports_query.fetch()
         user, url, url_linktext = user_check(self)
+        
+        theme_items = Theme.query()
+
         template_values = {
             'user': user,
             'url': url,
             'url_linktext': url_linktext,
-            # 'themes': theme_items,
+            'theme_items': theme_items,
         }
 
 
