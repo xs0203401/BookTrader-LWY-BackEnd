@@ -54,7 +54,7 @@ class Author(ndb.Model):
 class Report(ndb.Model):
     author = ndb.StructuredProperty(Author)
     title = ndb.StringProperty(indexed=False)
-    tag = ndb.StringProperty(indexed=False)
+    tag = ndb.StringProperty(indexed=False, repeated=True)
     theme = ndb.StringProperty(indexed=False)
     description = ndb.StringProperty(indexed=False)
     image = ndb.BlobKeyProperty(indexed=False)
