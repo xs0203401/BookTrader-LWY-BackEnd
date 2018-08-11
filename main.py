@@ -55,6 +55,7 @@ class Report(ndb.Model):
     author = ndb.StructuredProperty(Author)
     title = ndb.StringProperty(indexed=False)
     tag = ndb.StringProperty(indexed=False)
+    theme = ndb.StringProperty(indexed=False)
     description = ndb.StringProperty(indexed=False)
     image = ndb.BlobKeyProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
@@ -127,9 +128,10 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
             report.author = Author(
                 identity="Anonymous",
                 email="unknown@unknown.com")
-        # report.theme = self.request.get('theme')
+        report.theme = report_theme
         report.title = self.request.get('title')
-        report.tag = self.request.get('tags')
+        report_tags = self.request.get('tags')
+        report.tag = [i.strip() for i in report_tags.split(',')]
         report.description = self.request.get('description')
         report.image = upload.key()
 
@@ -224,6 +226,26 @@ class ManageThemes(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('manage.html')
         self.response.write(template.render(template_values))
 
+class ReportsSearch(webapp2.RequestHandler):
+
+    def get(self):
+        user, url, url_linktext = user_check(self)
+
+        q = self.request.get('q')
+
+        page_num = int(self.request.get('page_num', 1))
+
+        template_values = {
+            'user': user,
+            'url': url,
+            'url_linktext': url_linktext,
+            'page_num': page_num,
+            'q': q,
+            # 'reports': report_items,
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('reports_search.html')
+        self.response.write(template.render(template_values))
 
 
 
@@ -232,6 +254,7 @@ app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/themes', ThemesPage),
     ('/reports', ReportsPage),
+    ('/s', ReportsSearch),
     ('/manage_themes', ManageThemes),
     ('/create_report', CreateReport),
     ('/view_photo/([^/]+)?', ViewPhotoHandler),
