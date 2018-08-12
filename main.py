@@ -6,6 +6,7 @@ from google.appengine.api import users
 from google.appengine.ext import blobstore
 from google.appengine.ext import ndb
 from google.appengine.ext.webapp import blobstore_handlers
+from google.appengine.api import search
 import webapp2
 import jinja2
 
@@ -54,11 +55,17 @@ class Author(ndb.Model):
 class Report(ndb.Model):
     author = ndb.StructuredProperty(Author)
     title = ndb.StringProperty(indexed=False)
-    tag = ndb.StringProperty(indexed=False, repeated=True)
+    # tag = ndb.StringProperty(indexed=False, repeated=True)
+    tag = ndb.StringProperty(indexed=True)
     theme = ndb.StringProperty(indexed=False)
     description = ndb.StringProperty(indexed=False)
     image = ndb.BlobKeyProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
+
+    def _post_put_hook(self, future):
+        doc = search.Document(doc_id=self.key.urlsafe(), 
+            fields=[search.TextField(name='tags', value=self.tag)])
+        search.Index('tags').put(doc)
 
 class ViewPhotoHandler(blobstore_handlers.BlobstoreDownloadHandler):
     def get(self, photo_key):
@@ -131,7 +138,8 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
         report.theme = report_theme
         report.title = self.request.get('title')
         report_tags = self.request.get('tags')
-        report.tag = [i.strip() for i in report_tags.split(',')]
+        report.tag = ",".join(set([i.strip() for i in report_tags.split(',')]))
+        # report.tag = report_tags
         report.description = self.request.get('description')
         report.image = upload.key()
 
@@ -209,8 +217,6 @@ class ReportsPage(webapp2.RequestHandler):
 class ManageThemes(webapp2.RequestHandler):
 
     def get(self):
-        # themes_query = Theme.query()
-        # theme_items = reports_query.fetch()
         user, url, url_linktext = user_check(self)
         
         theme_items = Theme.query()
@@ -231,21 +237,44 @@ class ReportsSearch(webapp2.RequestHandler):
     def get(self):
         user, url, url_linktext = user_check(self)
 
-        q = self.request.get('q')
-
+        query_string = self.request.get('queryString')
         page_num = int(self.request.get('page_num', 1))
+
+        if query_string=='':
+            reports_query = Report.query()
+            report_items = reports_query.fetch(5, offset=5*(page_num-1))
+            # self.response.write(report_items)
+        else:
+            options = search.QueryOptions(limit=10)
+            query = search.Query(query_string=query_string, options=options)
+            results = search.Index('tags').search(query)
+
+            report_items = []
+            for doc in results:
+                doc_ID = doc.doc_id
+                # self.response.write("<p>id</p>")
+                # self.response.write(doc_ID)
+
+                # self.response.write("<p>report by id</p>")
+                report_key = ndb.Key(urlsafe=doc_ID)
+                item = report_key.get()
+                # self.response.write(item)
+
+                report_items.append(item)
+
 
         template_values = {
             'user': user,
             'url': url,
             'url_linktext': url_linktext,
             'page_num': page_num,
-            'q': q,
-            # 'reports': report_items,
+            'query_string': query_string,
+            'reports': report_items,
         }
 
         template = JINJA_ENVIRONMENT.get_template('reports_search.html')
         self.response.write(template.render(template_values))
+
 
 
 

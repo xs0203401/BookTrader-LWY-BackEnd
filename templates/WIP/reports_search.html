@@ -51,10 +51,10 @@
     </div>
     <div class="container">
       <form class="form-inline" action="/s">
-        <input class="form-control" type="text" name="q"/> 
+        <input class="form-control" type="text" name="queryString"/> 
         <button class="btn btn-primary" type="submit">Search</button>
       </form>
-      <h1>[Search: {{ q }}] Reports - Page {{ page_num }}</h1>
+      <h1>[Search by Tag: {{ query_string }}] Reports - Page {{ page_num }}</h1>
       <div class="row">
       {% for item in reports -%}
         <div class="col-md-12">
@@ -65,8 +65,9 @@
             <h3>Report Title: {{ item.title }}</h3>
             <h4>Author: <a href="mailto:{{ item.author.email }}">{{ item.author.identity }}</a></h4>
             <p>Description: {{ item.description }}</p>
-            <i>Report Date: {{ item.date }}</i></br>
-            <b>Tags: {{ item.tag }}</b>
+            <b>Report Date: {{ item.date }}</b></br>
+            <i>Tags: {{ item.tag }}</i></br>
+            <b>Theme: {{ item.theme }}</b>
           </div>
         </div>
         <hr/>
