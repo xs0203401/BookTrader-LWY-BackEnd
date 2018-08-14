@@ -7,7 +7,6 @@ from google.appengine.ext import blobstore
 from google.appengine.ext import ndb
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.api import search
-import mailing
 import webapp2
 import jinja2
 
@@ -19,29 +18,26 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 # [END imports]
 
-# DEFAULT_THEME = ""
-ADMIN_USERS = ['xs020340@gmail.com','difu.wu@utexas.edu','yeshuai95@utexas.edu']
+DEFAULT_THEME = "T1"
 
 def user_check(self):
     user = users.get_current_user()
     if user:
         login_url = users.create_logout_url(self.request.uri)
         login_url_linktext = 'Logout'
-        email=users.get_current_user().email()
+        nickname = users.get_current_user().getNickname()
     else:
         login_url = users.create_login_url(self.request.uri)
         login_url_linktext = 'Login'
-        email="Please Login"
-    return user, email, login_url, login_url_linktext
+        nickname = 'Annoymous User'
+    return user, nickname, login_url, login_url_linktext
 
 
-def theme_key(theme_name):
+def theme_key(theme_name=DEFAULT_THEME):
     return ndb.Key('theme_name', theme_name)
 
 class Theme(ndb.Model):
     theme_name = ndb.StringProperty()
-    theme_description = ndb.StringProperty()
-    theme_image = ndb.BlobKeyProperty(indexed=False)
 
 def THEME_INITIALIZE():
     t1=Theme()
@@ -56,6 +52,7 @@ def THEME_INITIALIZE():
 
 class Author(ndb.Model):
     identity = ndb.StringProperty(indexed=False)
+    nickname = ndb.StringProperty(indexed=False)
     email = ndb.StringProperty(indexed=False)
 
 class Report(ndb.Model):
@@ -84,11 +81,11 @@ class MainPage(webapp2.RequestHandler):
 
     def get(self):
 
-        user, email, login_url, login_url_linktext = user_check(self)
+        user, user_nick, login_url, login_url_linktext = user_check(self)
 
         template_values = {
-            'user': user,
-            'u_nick': email,
+            'user': user, 
+            'u_nick': user_nick,
             'url': login_url,
             'url_linktext': login_url_linktext,
         }
@@ -102,7 +99,7 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
 
     def get(self):
 
-        user, email, login_url, login_url_linktext = user_check(self)
+        user, user_nick, login_url, login_url_linktext = user_check(self)
         
         theme_items = Theme.query()
         
@@ -112,8 +109,8 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
         report_theme = self.request.get('theme')
 
         template_values = {
-            'user': user,
-            'u_nick': email,
+            'user': user, 
+            'u_nick': user_nick,
             'url': login_url,
             'url_linktext': login_url_linktext,
             'upload_action': upload_url,
@@ -126,7 +123,7 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
 
     def post(self):
         
-        user, email, login_url, login_url_linktext = user_check(self)
+        user, user_nick, login_url, login_url_linktext = user_check(self)
 
         # Saving image
         upload = self.get_uploads()[0]
@@ -138,11 +135,13 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
         if users.get_current_user():
             report.author = Author(
                 identity=users.get_current_user().user_id(),
-                email=users.get_current_user().email())
+                email=users.get_current_user().email(),
+                nickname=user.get_current_user().getNickname())
         else:
             report.author = Author(
                 identity="Anonymous",
-                email="unknown@unknown.com")
+                email="unknown@unknown.com",
+                nickname="Anonymous")
         report.theme = report_theme
         report.title = self.request.get('title')
         report_tags = self.request.get('tags')
@@ -166,25 +165,19 @@ class ThemesPage(webapp2.RequestHandler):
         # greetings_query = Greeting.query(
         #     ancestor=guestbook_key(guestbook_name)).order(-Greeting.date)
         # greetings = greetings_query.fetch(10)
-        user, email, login_url, login_url_linktext = user_check(self)
+        user, user_nick, login_url, login_url_linktext = user_check(self)
 
         # pass "0" when testing to initialize first 3 Themes
         if self.request.get('I')=="0":
             THEME_INITIALIZE()
 
-        if email in ADMIN_USERS:
-            manage_themes_TF = 1
-        else:
-            manage_themes_TF = 0
-
         theme_items = Theme.query()
 
         template_values = {
-            'user': user,
-            'u_nick': email,
+            'user': user, 
+            'u_nick': user_nick,
             'url': login_url,
             'url_linktext': login_url_linktext,
-            'manage_themes_TF': manage_themes_TF,
             'theme_items': theme_items,
         }
 
@@ -196,7 +189,7 @@ class ReportsPage(webapp2.RequestHandler):
 
     def get(self):
 
-        user, email, login_url, login_url_linktext = user_check(self)
+        user, user_nick, login_url, login_url_linktext = user_check(self)
 
         # guestbook_name = self.request.get('guestbook_name',
         #                                   DEFAULT_GUESTBOOK_NAME)
@@ -217,8 +210,8 @@ class ReportsPage(webapp2.RequestHandler):
         report_items = reports_query.fetch(5, offset=5*(page_num-1))
 
         template_values = {
-            'user': user,
-            'u_nick': email,
+            'user': user, 
+            'u_nick': user_nick,
             'url': login_url,
             'url_linktext': login_url_linktext,
             'page_num': page_num,
@@ -233,7 +226,7 @@ class ReportsPage(webapp2.RequestHandler):
 class ReportsSearch(webapp2.RequestHandler):
 
     def get(self):
-        user, email, login_url, login_url_linktext = user_check(self)
+        user, user_nick, login_url, login_url_linktext = user_check(self)
 
         query_string = self.request.get('queryString')
         page_num = int(self.request.get('page_num', 1))
@@ -250,15 +243,20 @@ class ReportsSearch(webapp2.RequestHandler):
             report_items = []
             for doc in results:
                 doc_ID = doc.doc_id
+                # self.response.write("<p>id</p>")
+                # self.response.write(doc_ID)
+
+                # self.response.write("<p>report by id</p>")
                 report_key = ndb.Key(urlsafe=doc_ID)
                 item = report_key.get()
+                # self.response.write(item)
 
                 report_items.append(item)
 
 
         template_values = {
-            'user': user,
-            'u_nick': email,
+            'user': user, 
+            'u_nick': user_nick,
             'url': login_url,
             'url_linktext': login_url_linktext,
             'page_num': page_num,
@@ -273,18 +271,13 @@ class ReportsSearch(webapp2.RequestHandler):
 class ManageThemes(webapp2.RequestHandler):
 
     def get(self):
-        user, email, login_url, login_url_linktext = user_check(self)
+        user, user_nick, login_url, login_url_linktext = user_check(self)
         
-        if email not in ADMIN_USERS:
-            self.redirect('/themes')
-            return
-
-
         theme_items = Theme.query()
 
         template_values = {
-            'user': user,
-            'u_nick': email,
+            'user': user, 
+            'u_nick': user_nick,
             'url': login_url,
             'url_linktext': login_url_linktext,
             'theme_items': theme_items,
@@ -297,34 +290,33 @@ class ManageThemes(webapp2.RequestHandler):
 class MyAccount(webapp2.RequestHandler):
 
     def get(self):
-        user, email, login_url, login_url_linktext = user_check(self)
+        user, user_nick, login_url, login_url_linktext = user_check(self)
         
-        # theme_items = Theme.query()
+        theme_items = Theme.query()
 
-        # template_values = {
-        #     'user': user,
-        #     'u_nick': email,
-        #     'url': login_url,
-        #     'url_linktext': login_url_linktext,
-        #     'theme_items': theme_items,
-        # }
+        template_values = {
+            'user': user, 
+            'u_nick': user_nick,
+            'url': login_url,
+            'url_linktext': login_url_linktext,
+            'theme_items': theme_items,
+        }
 
 
-        # template = JINJA_ENVIRONMENT.get_template('my_acct.html')
-        # self.response.write(template.render(template_values))
+        template = JINJA_ENVIRONMENT.get_template('my_acct.html')
+        self.response.write(template.render(template_values))
 
 
 
 # [START app]
 app = webapp2.WSGIApplication([
-    ('/', MainPage),
-    ('/themes', ThemesPage),
-    ('/reports', ReportsPage),
-    ('/s', ReportsSearch),
-    ('/manage_themes', ManageThemes),
-    ('/my', MyAccount),
-    ('/mailing', mailing.MailingService),
-    ('/create_report', CreateReport),
-    ('/view_photo/([^/]+)?', ViewPhotoHandler),
+    ('/m/', MainPage),
+    ('/m/themes', ThemesPage),
+    ('/m/reports', ReportsPage),
+    ('/m/s', ReportsSearch),
+    ('/m/manage_themes', ManageThemes),
+    ('/m/my', MyAccount),
+    ('/m/create_report', CreateReport),
+    ('/m/view_photo/([^/]+)?', ViewPhotoHandler),
 ], debug=True)
 # [END app]

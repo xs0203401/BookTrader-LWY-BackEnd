@@ -43,17 +43,32 @@
           </button>
           <a class="brand" href="/">BookTrader</a>
           <div class="nav-collapse collapse pull-right">
+            {% if manage_themes_TF==1 -%}
+            <a href="/manage_themes" class="btn">Manage Themes</a>
+            {% endif -%}
+            <a href="/my" class="btn">My Account: {{ u_nick }}</a>
             <a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>
           </div>
         </div>
       </div>
     </div>
     <div class="container">
-      <ul>
-      {% for item in theme_items -%}
-        <li><a href="/reports?report_theme={{ item.theme_name }}">{{ item.theme_name }}</a></li>
-      {% endfor -%}
-      </ul>
+      <div class="row">
+        <ul class="thumbnails">
+        {% for item in theme_items -%}
+          <li class="span4">
+            <div class="thumbnail">
+              <img src="/view_photo/{{ item.theme_image }}" alt="{{ item.theme_name }}">
+              <div class="caption">
+                <h3>{{ item.theme_name }}</h3>
+                <p>{{ item.theme_description }}</p>
+                <p align="center"><a href="/reports?report_theme={{ item.theme_name }}" class="btn btn-primary btn-block">{{ item.theme_name }}</a></p>
+              </div>
+            </div>
+          </li>
+        {% endfor -%}
+        </ul>
+      </div>
     </div>
 	
 </body>

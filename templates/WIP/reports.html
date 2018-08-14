@@ -43,6 +43,7 @@
           </button>
           <a class="brand" href="/">BookTrader</a>
           <div class="nav-collapse collapse pull-right">
+            <a href="/my" class="btn">My Account: {{ u_nick }}</a>
             <a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>
             <a href="/create_report?theme={{ report_theme }}" class="btn">Create Report</a>
           </div>
@@ -59,7 +60,7 @@
           </div>
           <div class="col-md-8">
             <h3>Report Title: {{ item.title }}</h3>
-            <h4>Author: <a href="mailto:{{ item.author.email }}">{{ item.author.identity }}</a></h4>
+            <h4>Author: <a href="mailto:{{ item.author.email }}">{{ item.author.nickname }}</a></h4>
             <p>Description: {{ item.description }}</p>
             <i>Report Date: {{ item.date }}</i></br>
             <b>Tags: {{ item.tag }}</b>

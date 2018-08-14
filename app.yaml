@@ -11,6 +11,9 @@ handlers:
 - url: /bootstrap
   static_dir: bootstrap
 
+- url: /m/.*
+  script: main_mobile.app
+
 - url: /.*
   script: main.app
 # [END handlers]
