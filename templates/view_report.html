@@ -1,0 +1,94 @@
+{% extends "BASE.html" %}
+{% block title %}{{ report.title }}{% endblock %}
+{% block content %}
+  <div class="navbar navbar-inverse">
+    <div class="navbar-inner">
+      <div class="container">
+        <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="brand" href="/">BookTrader</a>
+        <div class="nav-collapse collapse">
+          <ul class="nav">
+              <li class="divider-vertical"></li>
+              <li><a href="/themes"><i class="icon-file icon-white"></i> Themes</a></li>
+          </ul>
+          <div class="pull-right">
+            <a href="/create_report?theme={{ report_theme }}" class="btn">Create Report</a>
+            <ul class="nav pull-right">
+                <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome! {% if url_linktext=='Logout' -%}{{ u_nick }}{% endif -%} <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        {% if url_linktext=='Logout' -%}
+                        <li><a href="/user/preferences"><i class="icon-cog"></i> My Account</a></li>
+                        {% endif -%}
+                        <li class="divider"></li>
+                        <li><a href="{{ url|safe }}"><i class="icon-off"></i> {{ url_linktext }}</a></li>
+                    </ul>
+                </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <h1>Report: {{ report.title }}</h1>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="col-md-4">
+          <img alt="Report Image" src="/view_photo/{{ report.image }}" />
+        </div>
+      <hr/>
+        <div id="map-container" class="z-depth-1" style="height: 300px; width: 300px"></div>
+      <hr/>
+        <div class="col-md-8">
+          </br><b>Tags: {% for t in report.tag %}<a href="/s?queryString={{t}}">{{t}}</a>, {% endfor %}</b>
+          </br><i>Report Date: {{ report.date }}</i>
+          </br><p><b>Description:</b> {{ report.description }}</p>
+          <h5>Author: <a href="mailto:{{ report.author.email }}">{{ report.author.email }}</a></h5>
+        </div>
+      </div>
+    </div>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCTUN_f4wdy0hZm3rsRQdILHSWLhSpMU50&callback=initMap"
+    type="text/javascript"></script>
+    <script>
+
+      // This example displays a marker at the center of Australia.
+      // When the user clicks the marker, an info window opens.
+
+      function initMap() {
+        var rep_pt = {lat: 30.267153, lng: -97.743061};
+        var map = new google.maps.Map(document.getElementById('map-container'), {
+          zoom: 16,
+          center: rep_pt
+        });
+
+        var contentString = '<div id="content">'+
+            '<h1 id="firstHeading" class="firstHeading">{{ report.title }}</h1>'+
+            '<div id="bodyContent">'+
+            '<p><b>Description: </b>{{ report.description }}</p>'+
+            '<p>(Reported by <a href="mailto:{{ report.author.email }}">{{ report.author.email }}</a> on {{ report.date }}).</p>'+
+            '</div>'+
+            '</div>';
+
+        var infowindow = new google.maps.InfoWindow({
+          content: contentString
+        });
+
+        var marker = new google.maps.Marker({
+          position: rep_pt,
+          map: map,
+          title: 'Uluru (Ayers Rock)'
+        });
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+      }
+    </script>
+
+
+  </div>
+	
+{% endblock %}

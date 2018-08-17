@@ -2,4 +2,4 @@
 cron:
 - description: "test"
   url: /mailing
-  schedule: every 1 mins
+  schedule: every 24 hours

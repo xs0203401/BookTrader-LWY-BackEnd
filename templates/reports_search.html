@@ -1,0 +1,64 @@
+{% extends "BASE.html" %}
+{% block title %}Searcg By Tags{% endblock %}
+{% block content %}
+
+    <div class="navbar navbar-inverse">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="/">BookTrader</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+                <li class="divider-vertical"></li>
+                <li><a href="/themes"><i class="icon-file icon-white"></i> Themes</a></li>
+            </ul>
+            <div class="pull-right">
+              <a href="/create_report?theme={{ report_theme }}" class="btn">Create Report</a>
+              <ul class="nav pull-right">
+                  <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome! {% if url_linktext=='Logout' -%}{{ u_nick }}{% endif -%} <b class="caret"></b></a>
+                      <ul class="dropdown-menu">
+                          {% if url_linktext=='Logout' -%}
+                          <li><a href="/user/preferences"><i class="icon-cog"></i> My Account</a></li>
+                          {% endif -%}
+                          <li class="divider"></li>
+                          <li><a href="{{ url|safe }}"><i class="icon-off"></i> {{ url_linktext }}</a></li>
+                      </ul>
+                  </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <form class="form-inline" action="/s">
+        <p>Search by Tags: <br/><i>{% for t in REPORT_TAGS_SET %}{{t}}, {% endfor %}</i></p>
+        <input class="form-control" type="text" name="queryString"/> 
+        <button class="btn btn-primary" type="submit">Search</button>
+      </form>
+      <h1>[Tag: {{ query_string }}] Reports - Page {{ page_num }}</h1>
+      <div class="row">
+      {% for item in reports -%}
+        <div class="col-md-12">
+          <div class="col-md-4">
+            <img alt="Report Image" src="/view_photo/{{ item.image }}" />
+          </div>
+          <div class="col-md-8">
+            <h3>Report Title: {{ item.title }}</h3>
+            <h4>Author: <a href="mailto:{{ item.author.email }}">{{ item.author.nickname }}</a></h4>
+            <p>Description: {{ item.description }}</p>
+            <b>Report Date: {{ item.date }}</b></br>
+            <i>Tags: {% for t in item.tag %}<a href="/s?queryString={{t}}">{{t}}</a>, {% endfor %}</i></br>
+            <b>Theme: {{ item.theme }}</b>
+          </div>
+        </div>
+        <hr/>
+      {% endfor -%}
+      </div>
+    </div>
+
+{% endblock %}

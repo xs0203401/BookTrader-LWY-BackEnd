@@ -1,0 +1,37 @@
+{% extends "BASE.html" %}
+{% block title %}My Account{% endblock %}
+{% block content %}
+    <div class="navbar navbar-inverse">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="/">BookTrader</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav pull-right">
+                <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome! {% if url_linktext=='Logout' -%}{{ u_nick }}{% endif -%} <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        {% if url_linktext=='Logout' -%}
+                        <li><a href="/user/preferences"><i class="icon-cog"></i> My Account</a></li>
+                        {% endif -%}
+                        <li class="divider"></li>
+                        <li><a href="{{ url|safe }}"><i class="icon-off"></i> {{ url_linktext }}</a></li>
+                    </ul>
+                </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container">
+      <ul>
+      {% for item in theme_items -%}
+        <li><a href="/reports?report_theme={{ item.theme_name }}">{{ item.theme_name }}</a></li>
+      {% endfor -%}
+      </ul>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "BASE.html" %}
+{% block title %}Manage{% endblock %}
+{% block content %}
+    <div class="navbar navbar-inverse">
+      <div class="navbar-inner">
+        <div class="container">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="/">BookTrader</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+                <li class="divider-vertical"></li>
+                <li><a href="/themes"><i class="icon-file icon-white"></i> Themes</a></li>
+            </ul>
+            <div class="pull-right">
+              <ul class="nav pull-right">
+                  <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome! {% if url_linktext=='Logout' -%}{{ u_nick }}{% endif -%} <b class="caret"></b></a>
+                  </li>
+              </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    
+  <div class="container">
+    <form action="{{ upload_action }}" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="theme">Choose theme to edit</label>
+        <select id="theme" name="theme" class="form-control">
+          {% for item in theme_items -%}
+          <option value="{{ item.theme_name }}" {{ 'selected' if report_theme==item.theme_name }}>{{ item.theme_name }}</option>
+          {% endfor -%}
+          <option value="new" selected>Choose here to create</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="name">New Theme Name:</label>
+        <input type="title" class="form-control" placeholder="Theme Name" name="name">
+      </div>
+      <div class="form-group">
+        <label for="description">New Description:</label>
+        <textarea class="form-control" rows="4" id="description" placeholder="Theme Description" name="description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="cover-img">Upload New Theme Cover Image</label>
+        <input class="form-control" type="file" id="cover-img" name="cover-img" accept="image/png, image/jpeg">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn btn-default">Submit</button>
+      </div>
+    </form>
+    <div class="container">
+      <ul class="thumbnails">
+      {% for item in theme_items -%}
+        <li class="span4">
+          <div class="thumbnail">
+            <img src="/view_photo/{{ item.theme_image }}" alt="{{ item.theme_name }}">
+            <div class="caption">
+              <h3>{{ item.theme_name }}</h3>
+              <p>{{ item.theme_description }}</p>
+            </div>
+          </div>
+        </li>
+      {% endfor -%}
+      </ul>
+    </div>
+  </div>
+
+{% endblock %}

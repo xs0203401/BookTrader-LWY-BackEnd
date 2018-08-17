@@ -1,3 +1,4 @@
+
 """
 Decorator to indicate that this is a cron method and applies request.headers check
 Reference: https://stackoverflow.com/questions/14193816/google-app-engine-security-of-cron-jobs
@@ -5,6 +6,7 @@ Reference: https://stackoverflow.com/questions/14193816/google-app-engine-securi
 """
 # from google.appengine.api import app_identity
 from google.appengine.api import mail
+from main import *
 import webapp2
 
 
@@ -16,30 +18,34 @@ def cron_method(handler):
             return handler(self, *args, **kwargs)
     return check_if_cron
 
-def send_approved_mail(sender_address):
+def send_subscription_mail(sender_address, receiver_address, report_title, report_url_key):
 # [START send_mail]
 	mail.send_mail(sender=sender_address,
-	               to="Henry Johnson <yaohuang.liu@utexas.edu>",
+	               to=receiver_address,
 	               subject="Your account has been approved",
-	               body="""Dear Henry:
+	               body="""Dear {0}:
 
-Your example.com account has been approved.  You can now visit
-http://www.example.com/ and sign in using your Google Account to
-access new features.
+Your report {1}({2}) was successfully submitted. Don't forget to check it 
 
 Please let us know if you have any questions.
 
-The example.com Team
-""")
+Book Trader Team
+""".format(receiver_address, report_title, report_url_key))
 # [END send_mail]
 
 
 class MailingService(webapp2.RequestHandler):
 	
 	# Decorator for cron check
-	@cron_method
+	# @cron_method
 	def get(self):
-		sender_address = "postman@guestbookyaohuangliu.appspotmail.com"
-		# sender_address = "xs020340@gmail.com"
-		send_approved_mail(sender_address)
+		SENDER = "postman@guestbookyaohuangliu.appspotmail.com"
+		authors = Author.query()
+		for author in authors:
+			receiver_address = author.email
+			reports = Report.query(Report.author==author)
+			for r in reports:
+				self.response.write()
+
+
 		

@@ -1,39 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>create report</title>
-    <!-- [START css] -->
-    <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
-    <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap-responsive.css">
-    <!-- [END css] -->
-    <style type="text/css">
-      body {
-        padding-top: 40px;
-        padding-bottom: 40px;
-        background-color: #f5f5f5;
-      }
-      blockquote {
-        margin-bottom: 10px;
-        border-left-color: #bbb;
-      }
-      form {
-        margin-top: 10px;
-      }
-      .form-signin input[type="text"] {
-        font-size: 16px;
-        height: auto;
-        margin-bottom: 15px;
-        padding: 7px 9px;
-      }
-      .row {
-        margin-left: 0px;
-        margin-top: 10px;
-        overflow: scroll;
-      }
-    </style>
-</head>
-<body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
+{% extends "BASE.html" %}
+{% block title %}Create Report{% endblock %}
+{% block content %}
+    <div class="navbar navbar-inverse">
       <div class="navbar-inner">
         <div class="container">
           <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -42,9 +10,24 @@
             <span class="icon-bar"></span>
           </button>
           <a class="brand" href="/">BookTrader</a>
-          <div class="nav-collapse collapse pull-right">
-            <a href="/my" class="btn">My Account: {{ u_nick }}</a>
-            <a href="{{ url|safe }}" class="btn">{{ url_linktext }}</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+                <li class="divider-vertical"></li>
+                <li><a href="/themes"><i class="icon-file icon-white"></i> Themes</a></li>
+            </ul>
+            <div class="pull-right">
+              <ul class="nav pull-right">
+                  <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome! {% if url_linktext=='Logout' -%}{{ u_nick }}{% endif -%} <b class="caret"></b></a>
+                      <ul class="dropdown-menu">
+                          {% if url_linktext=='Logout' -%}
+                          <li><a href="/user/preferences"><i class="icon-cog"></i> My Account</a></li>
+                          {% endif -%}
+                          <li class="divider"></li>
+                          <li><a href="{{ url|safe }}"><i class="icon-off"></i> {{ url_linktext }}</a></li>
+                      </ul>
+                  </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -67,6 +50,7 @@
         <div class="form-group">
           <label for="tags">Tags:</label>
           <input type="textarea" class="form-control" id="tags" placeholder="Report tags" name="tags">
+          <p>Existing Tags: <br/><i>{% for t in REPORT_TAGS_SET %}{{t}}, {% endfor %}</i></p>
         </div>
         <div class="form-group">
           <label for="description">Description:</label>
@@ -83,8 +67,4 @@
       </form>
     </div>
 
-	
-
-	
-</body>
-</html>
+{% endblock %}
