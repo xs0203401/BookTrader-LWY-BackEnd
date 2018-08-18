@@ -301,25 +301,34 @@ class ManageThemes(blobstore_handlers.BlobstoreUploadHandler):
         self.response.write(template.render(template_values))
 
     def post(self):
-        # Saving cover image
-        upload = self.get_uploads()[0]
         # Check theme name
         theme_name = self.request.get('theme')
-        # Check if it's new
-        if theme_name=='new':
-            theme = Theme()
-            theme.theme_name = self.request.get('name')
-            theme.theme_description = self.request.get('description')
-            theme.theme_image = upload.key()
-            theme.put()
-        else:
+        # Check if it's delete operation
+        if self.request.get('deleteCheck')=='on':
+            if theme_name=='new': 
+                self.redirect('/manage_themes')
+                return
             theme_key = Theme.query(Theme.theme_name==theme_name).fetch(keys_only=True)
-            theme = theme_key[0].get()
-            theme.theme_name = self.request.get('name')
-            theme.theme_description = self.request.get('description')
-            theme.theme_image = upload.key()
-            theme.put()
+            theme = theme_key[0].delete()
+        else:
+            # Saving cover image
+            upload = self.get_uploads()[0]
 
+            if theme_name=='new':
+                # new, create new theme entity
+                theme = Theme()
+                theme.theme_name = self.request.get('name')
+                theme.theme_description = self.request.get('description')
+                theme.theme_image = upload.key()
+                theme.put()
+            else:
+                # edit theme
+                theme_key = Theme.query(Theme.theme_name==theme_name).fetch(keys_only=True)
+                theme = theme_key[0].get()
+                theme.theme_name = self.request.get('name')
+                theme.theme_description = self.request.get('description')
+                theme.theme_image = upload.key()
+                theme.put()
         self.redirect('/manage_themes')
 
 
