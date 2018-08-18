@@ -55,6 +55,7 @@ class Report(ndb.Model):
     title = ndb.StringProperty(indexed=False)
     tag = ndb.StringProperty(indexed=True, repeated=True)
     theme = ndb.StringProperty(indexed=False)
+    geo_point = ndb.GeoPtProperty(indexed=False)
     description = ndb.StringProperty(indexed=False)
     image = ndb.BlobKeyProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
@@ -150,6 +151,9 @@ class CreateReport(blobstore_handlers.BlobstoreUploadHandler):
         report.theme = report_theme
         report.title = self.request.get('title')
         report_tags = self.request.get('tags')
+        rep_lat = float(self.request.get('lat'))
+        rep_lng = float(self.request.get('lng'))
+        report.geo_point = ndb.GeoPt(rep_lat, rep_lng)
         report_tags = set([ t.title() for t in [i.strip() for i in report_tags.split(',')] if t!=''])
         report.tag = [t for t in report_tags]
         for t in report_tags:

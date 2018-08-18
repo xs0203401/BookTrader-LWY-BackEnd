@@ -51,15 +51,10 @@
         </div>
       </div>
     </div>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCTUN_f4wdy0hZm3rsRQdILHSWLhSpMU50&callback=initMap"
-    type="text/javascript"></script>
+    <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCTUN_f4wdy0hZm3rsRQdILHSWLhSpMU50&callback=initMap"></script>
     <script>
-
-      // This example displays a marker at the center of Australia.
-      // When the user clicks the marker, an info window opens.
-
       function initMap() {
-        var rep_pt = {lat: 30.267153, lng: -97.743061};
+        var rep_pt = new google.maps.LatLng({{report.geo_point}});
         var map = new google.maps.Map(document.getElementById('map-container'), {
           zoom: 16,
           center: rep_pt
@@ -80,7 +75,7 @@
         var marker = new google.maps.Marker({
           position: rep_pt,
           map: map,
-          title: 'Uluru (Ayers Rock)'
+          title: '{{ report.title }}'
         });
         marker.addListener('click', function() {
           infowindow.open(map, marker);

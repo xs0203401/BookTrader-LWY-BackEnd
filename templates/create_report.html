@@ -61,10 +61,65 @@
           <input class="form-control" type="file" id="book-img" name="book-img" accept="image/png, image/jpeg" multiple>
         </div>
         <div class="form-group">
+          <label id='locInputPromt'>Location: </label>
+          <input type="textarea" class="form-control" id="lat" name='lat' hidden value=30.284338>
+          <input type="textarea" class="form-control" id="lng" name='lng' hidden value=-97.737842>
+          <div id="map-container" class="z-depth-1" style="height: 300px; width: 300px"></div>
+        </div>
+        <hr/>
+        <div class="form-group">
           <button type="submit" class="btn btn-default">Submit</button>
         </div>
 
       </form>
-    </div>
+      <script>
+        function initMap() {
+            var myGeoPoint = new google.maps.LatLng(30.284338, -97.737842);
+            var myOptions = {
+                zoom: 16,
+                center: myGeoPoint,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            }
+            map = new google.maps.Map(document.getElementById("map-container"), myOptions);
+            // marker refers to a global variable
+            marker = new google.maps.Marker({
+                position: myGeoPoint,
+                map: map
+            });
+            // if center changed then update lat and lon document objects
+            google.maps.event.addListener(map, 'center_changed', function () {
+                var location = map.getCenter();
+                document.getElementById('lat').value = parseFloat(location.lat());
+                document.getElementById('lng').value = parseFloat(location.lng());
+                // call function to reposition marker location
+                placeMarker(location);
+            });
 
+            function placeMarker(location) {
+                var clickedLocation = new google.maps.LatLng(location);
+                marker.setPosition(location);
+            }
+        }
+
+        // Try HTML5 geolocation.
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            map.setCenter(pos);
+            document.getElementById('locInputPromt').innerHTML = "Location: <i>Please confirm your location marker.</i>";
+          }, function(){
+            document.getElementById('locInputPromt').innerHTML = "Location: <i>Location access denied. Please pick your location on the map.</i>";
+          });
+        } else {
+          // Browser doesn't support Geolocation
+          document.getElementById('locInputPromt').innerHTML = "Location: <i>Browser doesn't support. Please pick your location on the map.</i>";
+        }
+
+      </script>
+      <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCTUN_f4wdy0hZm3rsRQdILHSWLhSpMU50&callback=initMap">
+      </script>
+    </div>
 {% endblock %}

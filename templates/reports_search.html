@@ -41,24 +41,22 @@
         <button class="btn btn-primary" type="submit">Search</button>
       </form>
       <h1>[Tag: {{ query_string }}] Reports - Page {{ page_num }}</h1>
-      <div class="row">
+      <ul class="thumbnails">
       {% for item in reports -%}
-        <div class="col-md-12">
-          <div class="col-md-4">
-            <img alt="Report Image" src="/view_photo/{{ item.image }}" />
+        <li class="span4">
+          <div class="thumbnail">
+            <img src="/view_photo/{{ item.image }}" alt="{{ item.title }}">
+            <div class="caption">
+              <h3>{{ item.title }}</h3>
+              <h4>(From: <a href="mailto:{{ item.author.email }}">{{ item.author.email }}</a>)</h4>
+              <h5>Tags: {% for t in item.tag %}<a href="/s?queryString={{t}}">{{t}}</a>, {% endfor %}</h5>
+              <p><b>Description:</b> {{ item.description }}</p>
+              <i>{{ item.date }}</i>
+              <p align="center"><a href="/view_report?key={{ item.url_safe }}" class="btn btn-primary btn-block">{{ item.title }}</a></p>
+            </div>
           </div>
-          <div class="col-md-8">
-            <h3>Report Title: {{ item.title }}</h3>
-            <h4>Author: <a href="mailto:{{ item.author.email }}">{{ item.author.nickname }}</a></h4>
-            <p>Description: {{ item.description }}</p>
-            <b>Report Date: {{ item.date }}</b></br>
-            <i>Tags: {% for t in item.tag %}<a href="/s?queryString={{t}}">{{t}}</a>, {% endfor %}</i></br>
-            <b>Theme: {{ item.theme }}</b>
-          </div>
-        </div>
-        <hr/>
+        </li>
       {% endfor -%}
-      </div>
     </div>
 
 {% endblock %}
