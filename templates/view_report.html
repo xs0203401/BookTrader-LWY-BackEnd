@@ -35,6 +35,8 @@
   </div>
   <div class="container">
     <h1>Report: {{ report.title }}</h1>
+    <h5>{% if u_nick==report.author.email -%}<a href='/del?key={{ report.url_safe }}'>Delete Report</a>
+    {% endif -%}</h5>
     <div class="row">
       <div class="col-md-12">
         <div class="col-md-4">

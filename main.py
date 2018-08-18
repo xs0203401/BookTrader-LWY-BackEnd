@@ -179,9 +179,6 @@ class ThemesPage(webapp2.RequestHandler):
                 
         user, email, login_url, login_url_linktext = user_check(self)
 
-        # # pass "0" when testing to initialize first 3 Themes
-        # if self.request.get('I')=="0":
-        #     THEME_INITIALIZE()
 
         if email in ADMIN_USERS:
             manage_themes_TF = 1
@@ -353,6 +350,16 @@ class ViewReport(webapp2.RequestHandler):
 
         template = JINJA_ENVIRONMENT.get_template('view_report.html')
         self.response.write(template.render(template_values))
+
+
+class DeleteReport(webapp2.RequestHandler):
+
+    def get(self):
+        url_safe = self.request.get('key')
+        report_key = ndb.Key(urlsafe=url_safe)
+        report_key.delete()
+        self.redirect('/themes')
+
         
 
 
@@ -360,10 +367,6 @@ class MyAccount(webapp2.RequestHandler):
 
     def get(self):
         user, email, login_url, login_url_linktext = user_check(self)
-        
-        authors = Author.query(Author.email==email)[0]
-
-        reports = Report.query(Report.author==author)
 
 
         template_values = {
@@ -392,6 +395,7 @@ app = webapp2.WSGIApplication([
     ('/s', ReportsSearch),
     ('/manage_themes', ManageThemes),
     ('/my', MyAccount),
+    ('/del', DeleteReport),
     # ('/mailing', mailing.MailingService),
     ('/create_report', CreateReport),
     ('/view_photo/([^/]+)?', ViewPhotoHandler),
