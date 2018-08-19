@@ -4,3 +4,9 @@ indexes:
   properties:
   - name: date
     direction: desc
+
+- kind: SubMail
+  ancestor: no
+  properties:
+  - name: email
+    direction: asc

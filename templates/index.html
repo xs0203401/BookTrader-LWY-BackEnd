@@ -21,7 +21,7 @@
                   <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome! {% if url_linktext=='Logout' -%}{{ u_nick }}{% endif -%} <b class="caret"></b></a>
                       <ul class="dropdown-menu">
                           {% if url_linktext=='Logout' -%}
-                          <li><a href="/user/preferences"><i class="icon-cog"></i> My Account</a></li>
+                          <li><a href="/my"><i class="icon-cog"></i> My Account</a></li>
                           {% endif -%}
                           <li class="divider"></li>
                           <li><a href="{{ url|safe }}"><i class="icon-off"></i> {{ url_linktext }}</a></li>

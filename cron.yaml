@@ -1,5 +1,5 @@
 # cron.yaml
 cron:
-- description: "test"
+- description: "Subscription Mailing"
   url: /mailing
   schedule: every 24 hours

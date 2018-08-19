@@ -7,7 +7,7 @@ from google.appengine.ext import blobstore
 from google.appengine.ext import ndb
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.api import search
-import mailing
+from google.appengine.api import mail
 import webapp2
 import jinja2
 
@@ -49,6 +49,12 @@ class Theme(ndb.Model):
 class Author(ndb.Model):
     identity = ndb.StringProperty(indexed=False)
     email = ndb.StringProperty(indexed=False)
+
+
+class SubMail(ndb.Model):
+    email = ndb.StringProperty(indexed=True)
+    theme_name = ndb.StringProperty(indexed=False, repeated=True)
+
 
 class Report(ndb.Model):
     author = ndb.StructuredProperty(Author)
@@ -360,28 +366,86 @@ class DeleteReport(webapp2.RequestHandler):
         report_key.delete()
         self.redirect('/themes')
 
-        
-
 
 class MyAccount(webapp2.RequestHandler):
 
     def get(self):
         user, email, login_url, login_url_linktext = user_check(self)
+        sub = SubMail.query(SubMail.email==email)
+        num = sub.count()
+        if num!=0:
+            this_sub = sub.fetch(1)[0]
+        else:
+            this_sub = ''
 
+        theme_items = Theme.query()
 
         template_values = {
             'user': user,
             'u_nick': email,
             'url': login_url,
             'url_linktext': login_url_linktext,
-            'page_num': page_num,
-            'query_string': query_string,
-            'reports': report_items,
-            'REPORT_TAGS_SET': REPORT_TAGS_SET,
+            'num': num,
+            'sub': this_sub,
+            'theme_items': theme_items,
         }
 
         template = JINJA_ENVIRONMENT.get_template('my_acct.html')
         self.response.write(template.render(template_values))
+
+    def post(self):
+        theme_items = Theme.query()
+        sub_email = self.request.get('address')
+        sub_theme_name = [i_theme.theme_name 
+            for i_theme in theme_items 
+            if self.request.get(i_theme.theme_name)=='on']
+        sub = SubMail.query(SubMail.email==sub_email)
+        num = sub.count()
+        if num!=0:
+            this_sub = sub.fetch(keys_only=True)
+            this_sub = this_sub.get()
+            this_sub.email = sub_email
+            this_sub.theme_name = sub_theme_name
+        else:
+            this_sub = SubMail(email=sub_email,theme_name=sub_theme_name)
+        this_sub.put()
+        self.redirect('/my')
+
+
+def cron_method(handler):
+    # Reference: http://work.newmusic.pp.ua/questions/14193816/google-app-engine-security-of-cron-jobs
+    def check_if_cron(self, *args, **kwargs):
+        if self.request.headers.get('X-AppEngine-Cron') is None:
+            self.error(403)
+        else:
+            return handler(self, *args, **kwargs)
+    return check_if_cron
+
+def send_subscription_mail(sender_address, receiver_address, report_name):
+# [START send_mail]
+    mail.send_mail(sender=sender_address,
+                   to=receiver_address,
+                   subject="Don't forget to check your subscribed theme~!",
+                   body="""Dear {0}:
+
+View your subscription of {1}: https://guestbookyaohuangliu.appspot.com/reports?report_theme={1}
+
+Please let us know if you have any questions.
+
+Book Trader Team
+""".format(receiver_address, report_name))
+# [END send_mail]
+
+class MailingService(webapp2.RequestHandler):
+    
+    # Decorator for cron check
+    @cron_method
+    def get(self):
+        SENDER = "postman@guestbookyaohuangliu.appspotmail.com"
+        mail_sub_s = SubMail.query().fetch()
+        for mail_sub in mail_sub_s:
+            for theme_name in mail_sub.theme_name:
+                send_subscription_mail(SENDER, mail_sub.email, theme_name)
 
 
 
@@ -396,7 +460,7 @@ app = webapp2.WSGIApplication([
     ('/manage_themes', ManageThemes),
     ('/my', MyAccount),
     ('/del', DeleteReport),
-    # ('/mailing', mailing.MailingService),
+    ('/mailing', MailingService),
     ('/create_report', CreateReport),
     ('/view_photo/([^/]+)?', ViewPhotoHandler),
 ], debug=True)
