@@ -1,3 +1,17 @@
+# Copyright 2016 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # [START imports]
 import os
 import urllib
@@ -10,6 +24,7 @@ from google.appengine.api import search
 from google.appengine.api import mail
 import webapp2
 import jinja2
+import json
 
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -40,6 +55,8 @@ def user_check(self):
 def theme_key(theme_name):
     return ndb.Key('theme_name', theme_name)
 
+
+# [Models]
 class Theme(ndb.Model):
     theme_name = ndb.StringProperty()
     theme_description = ndb.StringProperty()
@@ -96,14 +113,16 @@ class MainPage(webapp2.RequestHandler):
 
         user, email, login_url, login_url_linktext = user_check(self)
 
+
+        # report_items = Report.query().fetch(10)
+
         template_values = {
             'user': user,
             'u_nick': email,
             'url': login_url,
             'url_linktext': login_url_linktext,
+            'report_items': report_items,
         }
-
-
         
         template = JINJA_ENVIRONMENT.get_template('index.html')
         self.response.write(template.render(template_values))
@@ -206,6 +225,19 @@ class ThemesPage(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 
 
+class M_Themes(webapp2.RequestHandler):
+
+    def get(self):
+
+        theme_items = Theme.query()
+        reports_value = {}
+        for item in theme_items:
+            reports_value[item.theme_name]=str(item.theme_image)
+
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(json.dumps(reports_value))
+
+
 class ReportsPage(webapp2.RequestHandler):
 
     def get(self):
@@ -237,6 +269,25 @@ class ReportsPage(webapp2.RequestHandler):
 
         template = JINJA_ENVIRONMENT.get_template('reports.html')
         self.response.write(template.render(template_values))
+
+
+class M_Reports(webapp2.RequestHandler):
+
+    def get(self):
+
+        report_theme=self.request.get('theme')
+        report_items = Report.query(ancestor=theme_key(report_theme)).order(-Report.date).fetch(10)
+
+        reports_value = {}
+        for item in report_items:
+            reports_value[item.url_safe]=(
+                    item.title,
+                    item.author.email,
+                    item.url_safe
+                )
+
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(json.dumps(reports_value))
 
 
 class ReportsSearch(webapp2.RequestHandler):
@@ -358,6 +409,31 @@ class ViewReport(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 
 
+class M_ViewReport(webapp2.RequestHandler):
+
+    def get(self):
+        url_safe = self.request.get('key')
+
+        report_key = ndb.Key(urlsafe=url_safe)
+
+        this_report = report_key.get()
+
+        this_report_value = {
+            'author_email': this_report.author.email,
+            'title': this_report.title,
+            'tag': this_report.tag,
+            'theme': this_report.theme,
+            'geo_lat': this_report.geo_point.lat,
+            'geo_lng': this_report.geo_point.lon,
+            'description': this_report.description,
+            'image': '/view_photo/'+str(this_report.image),
+            'date': str(this_report.date),
+        }
+
+        self.response.headers['Content-Type'] = 'application/json'
+        self.response.out.write(json.dumps(this_report_value))
+
+
 class DeleteReport(webapp2.RequestHandler):
 
     def get(self):
@@ -454,8 +530,11 @@ class MailingService(webapp2.RequestHandler):
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/themes', ThemesPage),
+    ('/m/themes', M_Themes),
     ('/reports', ReportsPage),
+    ('/m/reports', M_Reports),
     ('/view_report', ViewReport),
+    ('/m/view_report', M_ViewReport),
     ('/s', ReportsSearch),
     ('/manage_themes', ManageThemes),
     ('/my', MyAccount),

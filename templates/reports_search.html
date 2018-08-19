@@ -17,7 +17,9 @@
                 <li><a href="/themes"><i class="icon-file icon-white"></i> Themes</a></li>
             </ul>
             <div class="pull-right">
+              {% if url_linktext=='Logout' -%}
               <a href="/create_report?theme={{ report_theme }}" class="btn">Create Report</a>
+              {% endif -%} 
               <ul class="nav pull-right">
                   <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome! {% if url_linktext=='Logout' -%}{{ u_nick }}{% endif -%} <b class="caret"></b></a>
                       <ul class="dropdown-menu">
