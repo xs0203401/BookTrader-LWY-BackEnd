@@ -293,6 +293,7 @@ class M_Reports(webapp2.RequestHandler):
                 'geo_lng': item.geo_point.lon,
                 'description': item.description,
                 'image': '/view_photo/'+str(item.image),
+                'url':item.url_safe,
                 'date': str(item.date),
             })
 
@@ -321,8 +322,8 @@ class ReportsSearch(webapp2.RequestHandler):
                 doc_ID = doc.doc_id
                 report_key = ndb.Key(urlsafe=doc_ID)
                 item = report_key.get()
-
-                report_items.append(item)
+                if item!=None:
+                    report_items.append(item)
 
 
         template_values = {
