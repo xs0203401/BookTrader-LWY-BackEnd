@@ -2,4 +2,4 @@
 cron:
 - description: "Subscription Mailing"
   url: /mailing
-  schedule: every 24 hours
+  schedule: every 12 hours

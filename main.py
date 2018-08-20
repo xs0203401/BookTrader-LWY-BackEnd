@@ -482,16 +482,17 @@ class MyAccount(webapp2.RequestHandler):
 
     def post(self):
         theme_items = Theme.query()
-        sub_email = self.request.get('address')
+        # sub_email = self.request.get('address')
+        user, email, login_url, login_url_linktext = user_check(self)
+        sub_email = email
         sub_theme_name = [i_theme.theme_name 
             for i_theme in theme_items 
             if self.request.get(i_theme.theme_name)=='on']
         sub = SubMail.query(SubMail.email==sub_email)
         num = sub.count()
         if num!=0:
-            this_sub = sub.fetch(keys_only=True)
+            this_sub = sub.fetch(keys_only=True)[0]
             this_sub = this_sub.get()
-            this_sub.email = sub_email
             this_sub.theme_name = sub_theme_name
         else:
             this_sub = SubMail(email=sub_email,theme_name=sub_theme_name)
