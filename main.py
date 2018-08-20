@@ -230,9 +230,13 @@ class M_Themes(webapp2.RequestHandler):
     def get(self):
 
         theme_items = Theme.query()
-        reports_value = {}
+        reports_value = []
         for item in theme_items:
-            reports_value[item.theme_name]=str(item.theme_image)
+            reports_value.append({
+                'name': item.theme_name,
+                'description': item.theme_description,
+                'image': str(item.theme_image)
+                })
 
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(json.dumps(reports_value))
@@ -278,13 +282,19 @@ class M_Reports(webapp2.RequestHandler):
         report_theme=self.request.get('theme')
         report_items = Report.query(ancestor=theme_key(report_theme)).order(-Report.date).fetch(10)
 
-        reports_value = {}
+        reports_value = []
         for item in report_items:
-            reports_value[item.url_safe]=(
-                    item.title,
-                    item.author.email,
-                    item.url_safe
-                )
+            reports_value.append({
+                'author_email': item.author.email,
+                'title': item.title,
+                'tag': item.tag,
+                'theme': item.theme,
+                'geo_lat': item.geo_point.lat,
+                'geo_lng': item.geo_point.lon,
+                'description': item.description,
+                'image': '/view_photo/'+str(item.image),
+                'date': str(item.date),
+            })
 
         self.response.headers['Content-Type'] = 'application/json'
         self.response.out.write(json.dumps(reports_value))
